@@ -5,90 +5,95 @@
       "http.cors.enabled": true,
       "discovery.zen.ping.multicast.enabled": false,
       "bootstrap.mlockall": true
+    },
+    "shield": {
+      "users": [
+        { "username": "admin", "password": "notsecure", "roles": ["admin"] },
+        { "username": "kibana", "password": "notsecure", "roles": ["kibana4_server"] },
+        { "username": "remote", "password": "notsecure", "roles": ["remote_marvel_agent"] },
+        { "username": "user", "password": "notsecure", "roles": ["kibana4"] },
+        { "username": "access", "password": "notsecure", "roles": ["kibana4", "marvel_user"] }
+      ]
     }
   },
   "clusters": {
-    "master": {
-      "branch": "master",
-      "directory": "/home/vagrant/elasticsearch/es-master",
-      "nodes": [{
-        "node": { "name": "es-master" }
-      }]
-    },
-    "plugins": {
-      "version": "2.1.0",
-      "directory": "/home/vagrant/elasticsearch/es-with-plugins",
-      "nodes": [{
-        "node": { "name": "es-plugins" }
-      }],
+    "tlrx-monitor": {
+      "binary": "/vagrant/builds/tlrx-2.3/elasticsearch-2.3.0-SNAPSHOT.tar.gz",
+      "directory": "/vagrant/data/tlrx-monitor",
       "plugins": [
-        "license",
-        "marvel-agent",
-        "watcher",
-        "shield"
+        { "name": "license", "path": "file:///vagrant/builds/tlrx-2.3/license-2.3.0-SNAPSHOT.zip" },
+        { "name": "marvel-agent", "path": "file:///vagrant/builds/tlrx-2.3/tlrx-marvel-agent-2.3.0-SNAPSHOT.zip" }
       ],
       "config": {
-        "security.manager.enabled": false,
-        "shield.authc.realms.shield.type": "esusers",
-        "shield.authc.realms.shield.order": 0,
-        "shield.authz.store.files.roles": "/vagrant/config/shield/roles.yml",
-        "shield.authc.realms.shield.files.users": "/vagrant/config/shield/users",
-        "shield.authc.realms.shield.files.users_roles": "/vagrant/config/shield/users_roles"
+        "cluster.name": "tlrx-monitor",
+        "http.port": "9210",
+        "transport.tcp.port": "9310",
+        "marvel.agent.exporters.id1.type": "local"
       }
     },
-    "shield": {
-      "version": "2.1.0",
-      "directory": "/home/vagrant/elasticsearch/es-with-shield",
-      "nodes": [{
-        "node": { "name": "es-shield" }
-      }],
+    "tlrx-prod": {
+      "binary": "/vagrant/builds/tlrx-2.3/elasticsearch-2.3.0-SNAPSHOT.tar.gz",
+      "directory": "/vagrant/data/tlrx-prod",
       "plugins": [
-        "license",
-        "shield"
+        { "name": "license", "path": "file:///vagrant/builds/tlrx-2.3/license-2.3.0-SNAPSHOT.zip" },
+        { "name": "marvel-agent", "path": "file:///vagrant/builds/tlrx-2.3/tlrx-marvel-agent-2.3.0-SNAPSHOT.zip" }
       ],
-      "shield": {
-        "users": [
-          {
-            "username": "kibana",
-            "password": "notsecure",
-            "roles": ["kibana4_server"]
-          },
-          {
-            "username": "user",
-            "password": "notsecure",
-            "roles": ["kibana4", "marvel"]
-          },
-          {
-            "username": "admin",
-            "password": "admin",
-            "roles": ["admin"]
-          }
-        ]
-      }
+      "config": {
+        "cluster.name": "tlrx-prod",
+        "marvel.agent.exporters.id2.type": "http",
+        "marvel.agent.exporters.id2.host": [ "http://127.0.0.1:9210" ],
+        "marvel.agent.exporters.id2.auth.username": "remote",
+        "marvel.agent.exporters.id2.auth.password": "notsecure"
+      },
+      "nodes": [
+        { "node": { "name": "n0" } },
+        { "node": { "name": "d0", "master": false } },
+        { "node": { "name": "d1", "data": true, "master": false } },
+        { "node": { "name": "m0", "data": false } },
+        { "node": { "name": "m1", "data": false, "master": true } },
+        { "node": { "name": "c0", "data": false, "master": false } },
+        { "node": { "name": "c1", "data": false, "master": false } }
+      ]
     },
-    "2.x": {
+    "2.x-monitor": {
       "branch": "2.x",
-      "directory": "/home/vagrant/elasticsearch/es-2x",
-      "nodes": [{
-        "node": { "name": "es-2x" }
-      }]
-    },
-    "2.0": {
-      "branch": "2.0",
-      "directory": "/home/vagrant/elasticsearch/es-20",
-      "nodes": [{
-        "node": { "name": "es-20" }
-      }]
-    },
-    "1.7": {
-      "version": "1.7.3",
-      "directory": "/home/vagrant/elasticsearch/es-17",
+      "directory": "/vagrant/data/2x-monitor",
       "plugins": [
-        "elasticsearch/marvel/latest"
+        { "name": "license", "snapshot": true },
+        { "name": "marvel-agent", "snapshot": true },
+        { "name": "shield", "snapshot": true }
       ],
-      "nodes": [{
-        "node": { "name": "es-17" }
-      }]
+      "config": {
+        "cluster.name": "twodoteks-monitor",
+        "http.port": "9210",
+        "transport.tcp.port": "9310",
+        "marvel.agent.exporters.id1.type": "local"
+      }
+    },
+    "2.x-prod": {
+      "branch": "2.x",
+      "directory": "/vagrant/data/2x-prod",
+      "plugins": [
+        { "name": "license", "snapshot": true },
+        { "name": "marvel-agent", "snapshot": true },
+        { "name": "shield", "snapshot": true }
+      ],
+      "config": {
+        "cluster.name": "twodoteks-prod",
+        "marvel.agent.exporters.id2.type": "http",
+        "marvel.agent.exporters.id2.host": [ "http://127.0.0.1:9210" ],
+        "marvel.agent.exporters.id2.auth.username": "remote",
+        "marvel.agent.exporters.id2.auth.password": "notsecure"
+      },
+      "nodes": [
+        { "node": { "name": "n0" } },
+        { "node": { "name": "d0", "master": false } },
+        { "node": { "name": "d1", "data": true, "master": false } },
+        { "node": { "name": "m0", "data": false } },
+        { "node": { "name": "m1", "data": false, "master": true } },
+        { "node": { "name": "c0", "data": false, "master": false } },
+        { "node": { "name": "c1", "data": false, "master": false } }
+      ]
     }
   }
 }
